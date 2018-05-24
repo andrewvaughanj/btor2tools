@@ -13,8 +13,8 @@ $(BUILDIR)/btor2parser.o: dirs makefile
 $(BUILDIR)/libbtor2parser.a: $(BUILDIR)/btor2parser.o makefile
 	ar rc $@ $(BUILDIR)/btor2parser.o
 	ranlib $@
-$(BUILDIR)/libbtor2parser.so: $(BUILDIR)/btor2parser.o
-	$(CC) $(CFLAGS) -shared -o $@ $(BUILDIR)/btor2parser.o $(LIBS) -Xlinker -soname=libbtor2parser.so
+$(BUILDIR)/libbtor2parser.@SHARED_EXT@: $(BUILDIR)/btor2parser.o
+	$(CC) $(CFLAGS) -shared -o $@ $(BUILDIR)/btor2parser.o $(LIBS) -Xlinker -soname=libbtor2parser.@SHARED_EXT@
 $(BUILDIR)/catbtor.o: $(BUILDIR)/btor2parser.o makefile
 	$(CC) $(CFLAGS) -o $@ -c $(SRCDIR)/catbtor.c -I$(SRCDIR)
 $(BINDIR)/catbtor: dirs $(BUILDIR)/catbtor.o $(BUILDIR)/libbtor2parser.a makefile

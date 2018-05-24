@@ -9,12 +9,17 @@ flto=no
 shared=no
 static=no
 arch=unknown
+win32=no
 
 #--------------------------------------------------------------------------#
 
 die () {
   echo "*** configure.sh: $*" 1>&2
   exit 1
+}
+
+msg () {
+  echo "[configure.sh] $*"
 }
 
 usage () {
@@ -33,6 +38,7 @@ where <option> is one of the following:
   -asan             compile with -fsanitize=address -fsanitize-recover=address
   -gcov             compile with -fprofile-arcs -ftest-coverage
   -gprof            compile with -pg
+  -win32            perform a Windows build
 
 You might also want to use the environment variables
 CC and CXX to specify the used C and C++ compiler, as in
@@ -60,6 +66,7 @@ do
     -asan) asan=yes;;
     -gcov) gcov=yes;;
     -gprof) gprof=yes;;
+    -win32) win32=yes;;
     -h|-help|--help) usage;;
     -*) die "invalid option '$1' (try '-h')";;
   esac
@@ -88,21 +95,29 @@ then
   fi
 elif [ $debug = yes ]
 then
-  die "CFLAGS environment variable defined and '-g' used"
+  msg "CFLAGS environment variable defined and '-g' used"
 elif [ $debug = no ]
 then
-  die "CFLAGS environment variable defined and '-O' used"
+  msg "CFLAGS environment variable defined and '-O' used"
 fi
 [ $asan = yes ] && CFLAGS="$CFLAGS -fsanitize=address -fsanitize-recover=address"
 [ $gcov = yes ] && CFLAGS="$CFLAGS -fprofile-arcs -ftest-coverage"
 [ $gprof = yes ] && CFLAGS="$CFLAGS -pg"
+if [ $win32 = yes ]
+then
+    CFLAGS="$CFLAGS -DNPOSIX"
+    SHARED_EXT="dll"
+else
+    SHARED_EXT="so"
+fi
+
 echo "$CC $CFLAGS"
 rm -f makefile
 BINDIR="bin"
 BUILDIR="build"
 SRCDIR="src"
 TARGETS="$BINDIR/catbtor $BINDIR/btorsim"
-[ $shared = yes ] && TARGETS="$TARGETS $BUILDIR/libbtor2parser.so"
+[ $shared = yes ] && TARGETS="$TARGETS $BUILDIR/libbtor2parser.${SHARED_EXT}"
 sed \
   -e "s,@CC@,$CC," \
   -e "s,@CFLAGS@,$CFLAGS," \
@@ -110,5 +125,6 @@ sed \
   -e "s,@BINDIR@,$BINDIR," \
   -e "s,@SRCDIR@,$SRCDIR," \
   -e "s,@TARGETS@,$TARGETS," \
+  -e "s,@SHARED_EXT@,$SHARED_EXT," \
   makefile.in > makefile
 echo "makefile generated"

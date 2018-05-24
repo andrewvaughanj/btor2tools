@@ -25,6 +25,19 @@
 #include "util/btor2mem.h"
 #include "util/btor2stack.h"
 
+#ifdef NPOSIX
+/******************************************************
+ *
+ * See:
+ *
+ *     https://stackoverflow.com/a/19069107/8789881
+ *
+ *     https://stackoverflow.com/a/47243755/8789881
+ *
+ ******************************************************/
+static inline int getc_unlocked() { return _getchar_nolock(); }
+#endif
+
 /*------------------------------------------------------------------------*/
 
 static void
